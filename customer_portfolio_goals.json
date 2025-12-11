@@ -1,0 +1,355 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Portfolio Management Mock API",
+    "version": "1.0.0",
+    "description": "A lightweight portfolio management mock API for demos and automation. Provides endpoints for creating portfolios, managing positions, recording trades, and listing portfolio data. No authentication required."
+  },
+  "servers": [
+    {
+      "url": "https://premorse-rachael-juvenilely.ngrok-free.dev",
+      "description": "Public mock server for testing and demo purposes. All data is simulated and resets periodically."
+    }
+  ],
+  "paths": {
+    "/customers": {
+      "post": {
+        "summary": "Create customer",
+        "description": "Create a new customer profile. Provide name, age, and email. The server returns the created customer with a generated customerId and creation timestamp.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CustomerCreateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Customer created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Customer" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/customers/{customerId}": {
+      "get": {
+        "summary": "Get customer by id",
+        "description": "Retrieve a customer's profile by their unique customerId. Returns name, age, email, phone (if provided) and createdAt timestamp.",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer retrieved",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Customer" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update customer",
+        "description": "Update an existing customer's profile fields (name, age, email, phone). Returns the updated customer object.",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CustomerCreateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Customer updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Customer" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/customers/{customerId}/allocation": {
+      "get": {
+        "summary": "Get asset allocation for customer",
+        "description": "Retrieve the full asset allocation for a customer. Includes per-asset-class lists (mutual_funds, bonds, equity, crypto), each item with name, quantity and latest known price. Also includes optional allocation_percentages breakdown.",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Allocation retrieved",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AssetAllocation" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create/Replace allocation for customer",
+        "description": "Create or replace the customer's asset allocation. Submit arrays of AssetItem for each asset class and an optional allocation_percentages map. The request must include customerId matching the path.",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllocationUpsertRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Allocation created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AssetAllocation" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update allocation for customer",
+        "description": "Partially update the customer's allocation. Any provided asset class arrays replace or update the existing entries for those classes. Use this to change quantities, prices, or add/remove items.",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllocationUpsertRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Allocation updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AssetAllocation" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/customers/{customerId}/goals": {
+      "post": {
+        "summary": "Add goal for customer",
+        "description": "Create a financial goal for the customer (for example: 'Down payment'). Provide goal_amount and period_months; the server records the goal and returns a timestamp.",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GoalRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Goal created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GoalRecord" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "List goals for customer",
+        "description": "List all financial goals the customer has created. Each goal includes the target amount and months remaining (period_months) and creation timestamp.",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Goals list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/GoalRecord" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "components": {
+    "schemas": {
+      "CustomerCreateRequest": {
+        "type": "object",
+        "required": ["name", "age", "email"],
+        "properties": {
+          "name": { "type": "string" },
+          "age": { "type": "integer" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": "string" }
+        }
+      },
+
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "customerId": { "type": "string" },
+          "name": { "type": "string" },
+          "age": { "type": "integer" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+
+      "AssetItem": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "quantity": { "type": "number" },
+          "price": { "type": "number" }
+        }
+      },
+
+      "AssetAllocation": {
+        "type": "object",
+        "properties": {
+          "customerId": { "type": "string" },
+          "mutual_funds": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetItem" }
+          },
+          "bonds": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetItem" }
+          },
+          "equity": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetItem" }
+          },
+          "crypto": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetItem" }
+          },
+          "allocation_percentages": {
+            "type": "object",
+            "additionalProperties": { "type": "number" }
+          }
+        }
+      },
+
+      "AllocationUpsertRequest": {
+        "type": "object",
+        "required": ["customerId"],
+        "properties": {
+          "customerId": { "type": "string" },
+          "mutual_funds": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetItem" }
+          },
+          "bonds": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetItem" }
+          },
+          "equity": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetItem" }
+          },
+          "crypto": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetItem" }
+          },
+          "allocation_percentages": {
+            "type": "object",
+            "additionalProperties": { "type": "number" }
+          }
+        }
+      },
+
+      "GoalRequest": {
+        "type": "object",
+        "required": ["customerId", "name", "goal_amount", "period_months"],
+        "properties": {
+          "customerId": { "type": "string" },
+          "name": { "type": "string" },
+          "goal_amount": { "type": "number" },
+          "period_months": { "type": "integer" }
+        }
+      },
+
+      "GoalRecord": {
+        "type": "object",
+        "properties": {
+          "customerId": { "type": "string" },
+          "name": { "type": "string" },
+          "goal_amount": { "type": "number" },
+          "period_months": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}
